@@ -1,15 +1,5 @@
 from http import HTTPStatus
 
-import pytest
-from fastapi.testclient import TestClient
-
-from fast_zero.app import app
-
-
-@pytest.fixture
-def client():
-    return TestClient(app)
-
 
 def test_root_returned_https_status_ok_and_hello_world(client):
     response = client.get("/")
@@ -53,6 +43,24 @@ def test_read_users(client):
     }
 
 
+def test_read_user_by_user_id(client):
+    response = client.get("/users/1")
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {
+        "id": 1,
+        "username": "Julia",
+        "email": "julia@example.com",
+    }
+
+
+def test_read_user_by_user_id_returned_not_found(client):
+    response = client.get("/users/3")
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"detail": "User not found"}
+
+
 def test_update_user(client):
     response = client.put(
         "/users/1",
@@ -71,8 +79,29 @@ def test_update_user(client):
     }
 
 
+def test_update_user_returned_not_found_error(client):
+    response = client.put(
+        "/users/3",
+        json={
+            "username": "bob",
+            "email": "bob@example.com",
+            "password": "mynewpassword",
+        },
+    )
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"detail": "User not found"}
+
+
 def test_delete_user(client):
     response = client.delete("/users/1")
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {"message": "User delete"}
+
+
+def test_delete_user_not_found(client):
+    response = client.delete("/users/3")
+
+    assert response.status_code == HTTPStatus.NOT_FOUND
+    assert response.json() == {"detail": "User not found"}

@@ -23,16 +23,28 @@ def create_user(user: UserSchema):
     return user_with_id
 
 
-@app.get("/users/", response_model=UserList)
+@app.get("/users/", status_code=HTTPStatus.OK, response_model=UserList)
 def read_users():
     return {"users": database}
+
+
+@app.get(
+    "/users/{user_id}", status_code=HTTPStatus.OK, response_model=UserPublic
+)
+def read_user_by_user_id(user_id: int):
+    if user_id > len(database) or user_id < 1:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail="User not found"
+        )
+
+    return database[user_id - 1]
 
 
 @app.put("/users/{user_id}", response_model=UserPublic)
 def update_user(user_id: int, user: UserSchema):
     if user_id > len(database) or user_id < 1:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FAUND, detail="User not found"
+            status_code=HTTPStatus.NOT_FOUND, detail="User not found"
         )
 
     user_with_id = UserDB(**user.model_dump(), id=user_id)
@@ -45,7 +57,7 @@ def update_user(user_id: int, user: UserSchema):
 def delete_user(user_id: int):
     if user_id > len(database) or user_id < 1:
         raise HTTPException(
-            status_code=HTTPStatus.NOT_FAUND, detail="User not found"
+            status_code=HTTPStatus.NOT_FOUND, detail="User not found"
         )
 
     del database[user_id - 1]
