@@ -1,4 +1,5 @@
 from http import HTTPStatus
+from uuid import UUID
 
 from fastapi import Depends, FastAPI, HTTPException
 from sqlalchemy import select
@@ -59,7 +60,7 @@ def read_users(
     "/users/{user_id}", status_code=HTTPStatus.OK, response_model=UserPublic
 )
 def read_user_by_user_id(
-    user_id: int, session: Session = Depends(get_session)
+    user_id: UUID, session: Session = Depends(get_session)
 ):
     db_user = session.scalar(select(User).where(User.id == user_id))
 
@@ -73,7 +74,7 @@ def read_user_by_user_id(
 
 @app.put("/users/{user_id}", response_model=UserPublic)
 def update_user(
-    user_id: int, user: UserSchema, session: Session = Depends(get_session)
+    user_id: UUID, user: UserSchema, session: Session = Depends(get_session)
 ):
     db_user = session.scalar(select(User).where(User.id == user_id))
 
@@ -99,7 +100,7 @@ def update_user(
 
 
 @app.delete("/users/{user_id}", response_model=Message)
-def delete_user(user_id: int, session: Session = Depends(get_session)):
+def delete_user(user_id: UUID, session: Session = Depends(get_session)):
     db_user = session.scalar(select(User).where(User.id == user_id))
     if not db_user:
         raise HTTPException(
